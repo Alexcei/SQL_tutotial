@@ -734,3 +734,37 @@ FROM utQ q LEFT JOIN utB B
 ON q.Q_ID=B.B_Q_ID
 group by q.Q_NAME) T
 
+Задание: 125
+Данные о продаваемых моделях и ценах (из таблиц Laptop, PC и Printer) объединить в одну таблицу LPP и создать в ней порядковую нумерацию (id) без пропусков и дубликатов. 
+Считать...
+
+SELECT row_number() over(ORDER BY data.Id) Id, data.type, data.model, data.price
+FROM (SELECT row_number() over(ORDER BY l.id) Id, product.type, l.model, l.price
+FROM (SELECT row_number() over(ORDER BY code) AS id, code, model, price
+FROM laptop
+WHERE code < (SELECT COUNT(code) FROM laptop) / 2 + 1
+UNION
+SELECT row_number() over(ORDER BY code DESC) AS id, code, model, price
+FROM laptop
+WHERE code > (SELECT COUNT(code) FROM laptop) / 2) AS l
+INNER JOIN product ON product.model = l.model
+UNION
+SELECT row_number() over(ORDER BY p.id) Id, product.type, p.model, p.price
+FROM (SELECT row_number() over(ORDER BY code) AS id, code, model, price
+FROM pc
+WHERE code < (SELECT COUNT(code) FROM pc) / 2 + 1
+UNION
+SELECT row_number() over(ORDER BY code DESC) AS id, code, model, price
+FROM pc
+WHERE code > (SELECT COUNT(code) FROM pc) / 2) AS p
+INNER JOIN product ON product.model = p.model
+UNION
+SELECT row_number() over(ORDER BY pr.id) Id, product.type, pr.model, pr.price
+FROM (SELECT row_number() over(ORDER BY code) AS id, code, model, price
+FROM printer
+WHERE code < (SELECT COUNT(code) FROM printer) / 2 + 1				
+UNION				
+SELECT row_number() over(ORDER BY code DESC) AS id, code, model, price
+FROM printer
+WHERE code > (SELECT COUNT(code) FROM printer) / 2) AS pr
+INNER JOIN product ON product.model = pr.model) AS DATA
